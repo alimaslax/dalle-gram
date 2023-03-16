@@ -10,9 +10,9 @@ import type { ImageProps } from '../../utils/types'
 const Home: NextPage = ({ currentPhoto }: { currentPhoto: ImageProps }) => {
   const router = useRouter()
   const { photoId } = router.query
-  let index = Number(photoId)
+  let index = 0//Number(photoId)
 
-  const currentPhotoUrl = `https://res.cloudinary.com/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload/c_scale,w_2560/${currentPhoto.public_id}.${currentPhoto.format}`
+  const currentPhotoUrl = currentPhoto.public_id? currentPhoto.public_id : 'https://i.imgur.com/zCokFrK.jpeg'
 
   return (
     <>
@@ -31,25 +31,32 @@ const Home: NextPage = ({ currentPhoto }: { currentPhoto: ImageProps }) => {
 export default Home
 
 export const getStaticProps: GetStaticProps = async (context) => {
-  const results = await getResults()
+  const results = null;///await getResults()
 
   let reducedResults: ImageProps[] = []
   let i = 0
-  for (let result of results.resources) {
-    reducedResults.push({
-      id: i,
-      height: result.height,
-      width: result.width,
-      public_id: result.public_id,
-      format: result.format,
-    })
-    i++
-  }
+  // for (let result of results?.resources) {
+  //   reducedResults.push({
+  //     id: i,
+  //     height: result.height,
+  //     width: result.width,
+  //     public_id: result.public_id,
+  //     format: result.format,
+  //   })
+  //   i++
+  // }
 
-  const currentPhoto = reducedResults.find(
+  let currentPhoto = reducedResults.find(
     (img) => img.id === Number(context.params.photoId)
   )
-  currentPhoto.blurDataUrl = await getBase64ImageUrl(currentPhoto)
+  currentPhoto? currentPhoto : currentPhoto = {
+    id: 0,
+    height: '1500',
+    width: '800',
+    public_id: 'https://i.imgur.com/zCokFrK.jpeg',
+    format: 'jpeg',
+    blurDataUrl: 'https://i.imgur.com/zCokFrK.jpeg' 
+  }
 
   return {
     props: {
@@ -59,14 +66,8 @@ export const getStaticProps: GetStaticProps = async (context) => {
 }
 
 export async function getStaticPaths() {
-  const results = await cloudinary.v2.search
-    .expression(`folder:${process.env.CLOUDINARY_FOLDER}/*`)
-    .sort_by('public_id', 'desc')
-    .max_results(400)
-    .execute()
-
   let fullPaths = []
-  for (let i = 0; i < results.resources.length; i++) {
+  for (let i = 0; i < 5; i++) {
     fullPaths.push({ params: { photoId: i.toString() } })
   }
 

@@ -1,25 +1,24 @@
-import imagemin from 'imagemin'
-import imageminJpegtran from 'imagemin-jpegtran'
-import type { ImageProps } from './types'
+import { promisify } from 'util';
+import { readFile } from 'fs';
 
-const cache = new Map<ImageProps, string>()
+// get an image blob from url using fetch
+let getImageBlob = function(url){
+  return new Promise( async resolve=>{
+    let resposne = await fetch( url );
+    let blob = resposne.blob();
+    resolve( blob );
+  });
+};
 
-export default async function getBase64ImageUrl(
-  image: ImageProps
-): Promise<string> {
-  let url = cache.get(image)
-  if (url) {
-    return url
-  }
-  const response = await fetch(
-    `https://res.cloudinary.com/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload/f_jpg,w_8,q_70/${image.public_id}.${image.format}`
-  )
-  const buffer = await response.arrayBuffer()
-  const minified = await imagemin.buffer(Buffer.from(buffer), {
-    plugins: [imageminJpegtran()],
-  })
+// convert a blob to base64
+let blobToBase64 = async function (blob) {
+  let buffer = await promisify(readFile)(blob);
+  return buffer.toString('base64');
+};
 
-  url = `data:image/jpeg;base64,${Buffer.from(minified).toString('base64')}`
-  cache.set(image, url)
-  return url
+// combine the previous two functions to return a base64 encode image from url
+export default async function getBase64ImageUrl( url ): Promise<string>{
+  let blob = await getImageBlob( url );
+  let base64 = await blobToBase64( blob );
+  return base64;
 }

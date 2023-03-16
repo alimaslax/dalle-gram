@@ -8,13 +8,15 @@ import {
 } from "@heroicons/react/24/outline";
 import { AnimatePresence, motion, MotionConfig } from "framer-motion";
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useSwipeable } from "react-swipeable";
 import { variants } from "../utils/animationVariants";
 import downloadPhoto from "../utils/downloadPhoto";
 import { range } from "../utils/range";
 import type { ImageProps, SharedModalProps } from "../utils/types";
 import Twitter from "./Icons/Twitter";
+import { fabric } from "fabric";
+import { FabricJSCanvas, useFabricJSEditor } from "fabricjs-react";
 
 export default function SharedModal({
   index,
@@ -30,6 +32,95 @@ export default function SharedModal({
   let filteredImages = images?.filter((img: ImageProps) =>
     range(index - 15, index + 15).includes(img.id)
   );
+
+  const { selectedObjects, editor, onReady } = useFabricJSEditor();
+
+  // Declare a variable to store the brush instance
+  let brush;
+
+  // Create a new instance of the brush and set its properties
+  function setupBrush() {
+    brush = new fabric.PencilBrush(editor?.canvas);
+    brush.color = "#000";
+    brush.width = 5;
+  }
+
+  function drawTransparency() {
+    fabric.Canvas.prototype._onMouseEnter = (function (original) {
+      return function (e) {
+        if (this.isDrawingMode) {
+          // reset cached pointer, otherwise new path will be started from the point cursor last left the canvas
+          this._resetTransformEventData();
+          this._onMouseDownInDrawingMode(e);
+        }
+        original.call(this, e);
+      };
+    })(fabric.Canvas.prototype._onMouseEnter);
+    
+    const canvas = new fabric.Canvas("canvas");
+    
+    // Enable drawing mode
+    canvas.isDrawingMode = true;
+    
+    // Set brush properties
+    canvas.freeDrawingBrush.width = 5;
+    canvas.freeDrawingBrush.color = "#000";
+    
+    // Resize canvas to fit the window
+    canvas.setHeight(window.innerHeight);
+    canvas.setWidth(window.innerWidth);
+    
+    // Listen for mouse events
+    canvas.on("mouse:out", function (e) {
+      if (this.isDrawingMode) {
+        this._onMouseUpInDrawingMode(e);
+      }
+    });
+    
+    canvas.on("mouse:move", function (event) {
+      if (this.isDrawingMode) {
+        this.freeDrawingBrush.onMouseMove(event.e);
+      }
+    });
+    
+    canvas.on("mouse:down", function (event) {
+      if (this.isDrawingMode) {
+        this.freeDrawingBrush.onMouseDown(event.e);
+      }
+    });
+    
+    canvas.on("mouse:up", function (event) {
+      if (this.isDrawingMode) {
+        this.freeDrawingBrush.onMouseUp(event.e);
+      }
+    });    
+  }
+
+  useEffect(() => {
+    drawTransparency();
+  }, [editor]);
+
+  useEffect(() => {
+    // Load the image and add it to the canvas
+    fabric.Image.fromURL("https://i.imgur.com/zCokFrK.jpeg", function (oImg) {
+      editor?.canvas.add(oImg);
+
+      // Set the dimensions of the canvas to 800 x 1200
+      editor?.canvas.setDimensions({
+        width: 800,
+        height: 1200,
+      });
+
+      // Set the zoom level so that the entire image is visible
+      const zoom = Math.min(
+        editor?.canvas.getWidth() / oImg.width,
+        editor?.canvas.getHeight() / oImg.height
+      );
+      editor?.canvas.setZoom(zoom);
+      setupBrush(); // Call the setupBrush function here
+      drawTransparency();
+    });
+  }, [editor]);
 
   const handlers = useSwipeable({
     onSwipedLeft: () => {
@@ -61,26 +152,7 @@ export default function SharedModal({
         {/* Main image */}
         <div className="w-full">
           <div className="relative flex aspect-[3/2] items-center justify-center">
-            <AnimatePresence initial={false} custom={direction}>
-              <motion.div
-                key={index}
-                custom={direction}
-                variants={variants}
-                initial="enter"
-                animate="center"
-                exit="exit"
-                className="absolute"
-              >
-                <Image
-                  src={`https://res.cloudinary.com/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload/${currentImage.public_id}.${currentImage.format}`}
-                  width={800}
-                  height={1240}
-                  priority
-                  alt="Next.js Conf image"
-                  onLoadingComplete={() => setLoaded(true)}
-                />
-              </motion.div>
-            </AnimatePresence>
+            <FabricJSCanvas className="sample-canvas" onReady={onReady} />
           </div>
         </div>
 

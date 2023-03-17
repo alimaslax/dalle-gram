@@ -52,6 +52,23 @@ export default function Carousel({
     router.push("/", undefined, { shallow: true });
   }
 
+  function showPicture(edit64:Blob,prompt: string) {
+    // Create a FormData object
+    const form = new FormData();
+    form.append("image", base64);
+    form.append("mask", edit64);
+    console.log("prompt", prompt);
+    // Send a POST request to the server
+    fetch("/api/image-edit", {
+      method: "POST",
+      body: form,
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        setCanvasUrl(data.data[0].url);
+      })
+      .catch((error) => console.error(error));
+  }
 
   const configuration = new Configuration({
     apiKey: process.env.OPENAI_API_KEY,
@@ -194,14 +211,15 @@ export default function Carousel({
     event.preventDefault(); // this will prevent the default action of navigating the page
     const ext = "png";
     const canvas = ref.current!;
+    const prompt = event.target.elements.prompt.value;
     canvas.width = 500;
     canvas.height = 500;
     const base64 = canvas.toDataURL({
       format: ext,
       enableRetinaScaling: true,
     });
-    console.log(event.target.elements.prompt.value);
-    showPicture(base64,event.target.elements.prompt.value);
+    console.log(prompt);
+    showPicture(base64,prompt);
   };
   return (
     <div className="relative z-50 flex aspect-[3/2] w-full max-w-7xl items-center wide:h-full xl:taller-than-854:h-auto">

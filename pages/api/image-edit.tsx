@@ -13,16 +13,17 @@ export const config = {
 export default async function handler(req, res) {
   if (req.method === 'POST') {
     try {
+      console.log("$$$$$$$$$$")
       const imageType = 'image/png';
       const imageBase64Data = req.body.split(',')[1];
       const editBase64Data = req.body.split(',')[2];
-      //const prompt = req.body.split(',')[3];
+      const prompt = req.body.split(',')[3];
       const imageBuffer = Buffer.from(imageBase64Data, 'base64');
       const editBuffer = Buffer.from(editBase64Data, 'base64');
       const form = new FormData();
       form.append('image', imageBuffer, { contentType: imageType, filename: 'canvas-image.png' });
       form.append('mask', editBuffer, { contentType: imageType, filename: 'canvas-image-mask.png' });
-      form.append('prompt', 'A dream of a distant galaxy, concept art, matte painting, HQ, 4k');
+      form.append('prompt', 'Dream of a distant galaxy. Matte painting')
       form.append('n', 1);
       form.append('size', '512x512');
       form.append('response_format', 'url');

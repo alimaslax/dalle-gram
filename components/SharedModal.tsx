@@ -31,7 +31,7 @@ export default function SharedModal({
   let filteredImages = images?.filter((img: ImageProps) =>
     range(index - 15, index + 15).includes(img.id)
   );
-  
+
   const handlers = useSwipeable({
     onSwipedLeft: () => {
       if (index < images?.length - 1) {
@@ -62,22 +62,7 @@ export default function SharedModal({
         {/* Main image */}
         <div className="w-full">
           <div className="relative flex aspect-[3/2] items-center justify-center">
-          <AnimatePresence initial={false} custom={direction}>
-              <motion.div
-                key={index}
-                custom={direction}
-                variants={variants}
-                initial="enter"
-                animate="center"
-                exit="exit"
-                className="absolute"
-              >
-                <Carousel
-                  index={currentImage.id}
-                  currentPhoto={currentImage}
-                />
-              </motion.div>
-            </AnimatePresence>
+            <Carousel index={currentImage.id} currentPhoto={currentImage} />
           </div>
         </div>
 

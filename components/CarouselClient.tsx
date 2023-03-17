@@ -86,7 +86,7 @@ export default function Carousel({
 
   useEffect(() => {
     const canvas = new fabric.Canvas("c", {
-      width: 800,
+      width: 1200,
       height: 800,
       //overlayColor: "rgba(0,0,255,0.4)",
     });
@@ -155,25 +155,8 @@ export default function Carousel({
   }, [erasable1]);
 
   return (
-    <div className="App">
-      <div>
-        <button
-          onClick={() => {
-            const ext = "png";
-            const canvas = ref.current!;
-            const base64 = canvas.toDataURL({
-              format: ext,
-              enableRetinaScaling: true,
-            });
-            const link = document.createElement("a");
-            link.href = base64;
-            link.download = `eraser_example.${ext}`;
-            link.click();
-          }}
-        >
-          to Image
-        </button>
-      </div>
+    <div >
+      {/* Edit image */}
       <canvas id="c" width={500} height={500} />
     </div>
   );

@@ -22,12 +22,13 @@ export default async function handler(req, res) {
       const form = new FormData();
       form.append('image', imageBuffer, { contentType: imageType, filename: 'canvas-image.png' });
       form.append('mask', editBuffer, { contentType: imageType, filename: 'canvas-image-mask.png' });
-      form.append('prompt', '3D Style');
+      form.append('prompt', 'A dream of a distant galaxy, concept art, matte painting, HQ, 4k');
       form.append('n', 1);
       form.append('size', '512x512');
       form.append('response_format', 'url');
       form.append('user', 'your-end-user-unique-id');
 
+      //console.log(form);
       const response = await fetch('https://api.openai.com/v1/images/edits', {
         method: 'POST',
         headers: {

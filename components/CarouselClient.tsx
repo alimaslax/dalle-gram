@@ -52,24 +52,6 @@ export default function Carousel({
     router.push("/", undefined, { shallow: true });
   }
 
-  function showPicture(edit64,prompt) {
-    // Create a FormData object
-    const form = new FormData();
-    form.append("image", base64);
-    form.append("mask", edit64);
-    form.append("prompt", prompt);
-
-    // Send a POST request to the server
-    fetch("/api/image-edit", {
-      method: "POST",
-      body: form,
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        setCanvasUrl(data.data[0].url);
-      })
-      .catch((error) => console.error(error));
-  }
 
   const configuration = new Configuration({
     apiKey: process.env.OPENAI_API_KEY,
@@ -187,6 +169,27 @@ export default function Carousel({
     d?.set({ erasable: erasable1 });
   }, [erasable1]);
 
+
+
+  function showPicture(edit64,prompt) {
+    // Create a FormData object
+    const form = new FormData();
+    form.append("image", base64);
+    form.append("mask", edit64);
+    form.append("prompt", prompt);
+
+    // Send a POST request to the server
+    fetch("/api/image-edit", {
+      method: "POST",
+      body: form,
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        setCanvasUrl(data.data[0].url);
+      })
+      .catch((error) => console.error(error));
+  }
+  
   const handleSubmit = (event) => {
     event.preventDefault(); // this will prevent the default action of navigating the page
     const ext = "png";

@@ -155,9 +155,11 @@ export default function Carousel({
   }, [erasable1]);
 
   return (
-    <div >
-      {/* Edit image */}
+    <div
+    className="relative z-50 flex aspect-[3/2] w-full max-w-7xl items-center wide:h-full xl:taller-than-854:h-auto"
+  >
+    {/* Main image */}
       <canvas id="c" width={500} height={500} />
-    </div>
+  </div>
   );
 }

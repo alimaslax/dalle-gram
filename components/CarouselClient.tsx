@@ -59,7 +59,7 @@ export default function Carousel({
   });
 
   const [action, setAction] = useState(0);
-  const [erasable, setErasable] = useState(false);
+  const [erasable, setErasable] = useState(true);
   const [erasable1, setErasable1] = useState(false);
   const ref = useRef<fabric.Canvas>(null);
   const i = useRef<number>(2);
@@ -86,20 +86,22 @@ export default function Carousel({
 
   useEffect(() => {
     const canvas = new fabric.Canvas("c", {
+      width: 800,
+      height: 800,
       //overlayColor: "rgba(0,0,255,0.4)",
     });
     canvas.on("selection:created", async (e) => {});
     canvas.on("selection:updated", (e) => {
       //console.log(e.target.getEraser());
     });
-      console.log(currentPhoto.public_id);
+    console.log(currentPhoto.public_id);
     fabric.Image.fromURL(
       `/proxy?url=${encodeURIComponent(currentPhoto.public_id)}`,
       function (img) {
-              // Scale the image to fit the width of the canvas
-      const scaleFactor = canvas.width;
-      img.scaleToWidth(canvas.width);
-      img.scaleToHeight(canvas.height);
+        // Scale the image to fit the width of the canvas
+        const scaleFactor = canvas.width;
+        img.scaleToWidth(canvas.width);
+        img.scaleToHeight(canvas.height);
         //img.set({ opacity: 0.7 });
         canvas.setBackgroundImage(img);
         img.set({ erasable });
@@ -123,9 +125,6 @@ export default function Carousel({
     const fc = ref.current!;
     switch (action) {
       case 0:
-        fc.isDrawingMode = false;
-        break;
-      case 1:
         fc.freeDrawingBrush = new fabric.EraserBrush(fc);
         fc.freeDrawingBrush.shadow = new fabric.Shadow({
           blur: 5,
@@ -134,13 +133,11 @@ export default function Carousel({
           affectStroke: true,
           color: "white",
         });
-        fc.freeDrawingBrush.width = 80;
+        fc.freeDrawingBrush.width = 40;
         fc.isDrawingMode = true;
         break;
-      case 2:
-        fc.freeDrawingBrush = new fabric.SprayBrush(fc);
-        fc.freeDrawingBrush.width = 35;
-        fc.isDrawingMode = true;
+      case 1:
+        fc.isDrawingMode = false;
         break;
       default:
         break;
@@ -157,52 +154,8 @@ export default function Carousel({
     d?.set({ erasable: erasable1 });
   }, [erasable1]);
 
-  const getTitle = useCallback((action) => {
-    switch (action % 3) {
-      case 0:
-        return "select";
-      case 1:
-        return "erase";
-      case 2:
-        return "spray";
-      default:
-        return "";
-    }
-  }, []);
-
   return (
     <div className="App">
-      <div>
-        {[1, 2, 3].map((action) => (
-          <button key={`action${action}`} onClick={() => setAction(action % 3)}>
-            {getTitle(action)}
-          </button>
-        ))}
-      </div>
-      <div>
-        <div>
-          <label htmlFor="a">
-            background image <code>erasable</code>
-          </label>
-          <input
-            id="a"
-            type="checkbox"
-            onChange={(e) => setErasable(e.currentTarget.checked)}
-            value={`${erasable}`}
-          />
-        </div>
-        <div>
-          <label htmlFor="b">
-            overlay color <code>erasable</code>
-          </label>
-          <input
-            id="b"
-            type="checkbox"
-            onChange={(e) => setErasable1(e.currentTarget.checked)}
-            value={`${erasable}`}
-          />
-        </div>
-      </div>
       <div>
         <button
           onClick={() => {

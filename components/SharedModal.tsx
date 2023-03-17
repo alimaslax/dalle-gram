@@ -152,7 +152,26 @@ export default function SharedModal({
         {/* Main image */}
         <div className="w-full">
           <div className="relative flex aspect-[3/2] items-center justify-center">
-            <FabricJSCanvas className="sample-canvas" onReady={onReady} />
+          <AnimatePresence initial={false} custom={direction}>
+              <motion.div
+                key={index}
+                custom={direction}
+                variants={variants}
+                initial="enter"
+                animate="center"
+                exit="exit"
+                className="absolute"
+              >
+                <Image
+                  src={`${currentImage.public_id}`}
+                  width={800}
+                  height={1240}
+                  priority
+                  alt="Next.js Conf image"
+                  onLoadingComplete={() => setLoaded(true)}
+                />
+              </motion.div>
+            </AnimatePresence>
           </div>
         </div>
 
@@ -196,7 +215,7 @@ export default function SharedModal({
                   </a>
                 ) : (
                   <a
-                    href={`https://twitter.com/intent/tweet?text=Check%20out%20this%20pic%20from%20Next.js%20Conf!%0A%0Ahttps://nextjsconf-pics.vercel.app/p/${index}`}
+                    href={``}
                     className="rounded-full bg-black/50 p-2 text-white/75 backdrop-blur-lg transition hover:bg-black/75 hover:text-white"
                     target="_blank"
                     title="Open fullsize version"

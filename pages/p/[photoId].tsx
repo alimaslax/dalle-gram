@@ -17,7 +17,7 @@ const Home: NextPage = ({ currentPhoto }: { currentPhoto: ImageProps }) => {
   return (
     <>
       <Head>
-        <title>Next.js Conf 2022 Photos</title>
+        <title>Dalle-Gram 2023</title>
         <meta property="og:image" content={currentPhotoUrl} />
         <meta name="edit:image" content={currentPhotoUrl} />
       </Head>
@@ -67,7 +67,7 @@ export const getStaticProps: GetStaticProps = async (context) => {
 
 export async function getStaticPaths() {
   let fullPaths = []
-  for (let i = 0; i < 5; i++) {
+  for (let i = 0; i < 14; i++) {
     fullPaths.push({ params: { photoId: i.toString() } })
   }
 

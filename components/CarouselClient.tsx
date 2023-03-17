@@ -52,24 +52,6 @@ export default function Carousel({
     router.push("/", undefined, { shallow: true });
   }
 
-  function showPicture(edit64:Blob,prompt: string) {
-    // Create a FormData object
-    const form = new FormData();
-    form.append("image", base64);
-    form.append("mask", edit64);
-    console.log("prompt", prompt);
-    // Send a POST request to the server
-    fetch("/api/image-edit", {
-      method: "POST",
-      body: form,
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        setCanvasUrl(data.data[0].url);
-      })
-      .catch((error) => console.error(error));
-  }
-
   const configuration = new Configuration({
     apiKey: process.env.OPENAI_API_KEY,
   });
@@ -234,9 +216,25 @@ export default function Carousel({
       <form onSubmit={handleSubmit}>
       <label>
         Prompt:
-        <input id="prompt" type="text" value={'Maimi Vice Theme'}/>
+        <input 
+        style={{ 
+          padding: '0.5rem',
+          borderRadius: '0.3rem',
+          border: '1px solid #ccc',
+          marginLeft: '1rem'
+        }}
+        id="prompt" type="text" value={'A Dream of a Distant Galaxy'}/>
       </label>
-      <button type="submit">Submit</button>
+      <button
+        style={{
+          padding: '0.5rem 2rem',
+          backgroundColor: '#0077c2',
+          color: '#fff',
+          border: 'none',
+          borderRadius: '0.3rem',
+          fontSize: '1.2rem',
+          cursor: 'pointer'
+        }} type="submit">Submit</button>
       </form>
     </div>
   );

@@ -16,10 +16,10 @@ class MyDocument extends Document {
             content="See pictures from Next.js Conf and the After Party."
           />
           <meta property="og:title" content="Next.js Conf 2022 Pictures" />
-          <meta name="twitter:card" content="summary_large_image" />
-          <meta name="twitter:title" content="Next.js Conf 2022 Pictures" />
+          <meta name="edit:card" content="summary_large_image" />
+          <meta name="edit:title" content="Next.js Conf 2022 Pictures" />
           <meta
-            name="twitter:description"
+            name="edit:description"
             content="See pictures from Next.js Conf and the After Party."
           />
         </Head>

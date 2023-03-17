@@ -37,7 +37,7 @@ const Home: NextPage = ({ images }: { images: ImageProps[] }) => {
           content="https://nextjsconf-pics.vercel.app/og-image.png"
         />
         <meta
-          name="twitter:image"
+          name="edit:image"
           content="https://nextjsconf-pics.vercel.app/og-image.png"
         />
       </Head>

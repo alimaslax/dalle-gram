@@ -1,9 +1,8 @@
-import Image from "next/image";
 import { useRouter } from "next/router";
 import useKeypress from "react-use-keypress";
+import Image from 'next/image'
 import type { ImageProps } from "../utils/types";
 import { useLastViewedPhoto } from "../utils/useLastViewedPhoto";
-import SharedModal from "./SharedModal";
 import { useEffect, useState } from "react";
 import { fabric } from "fabric";
 import React, { useCallback, useRef } from "react";
@@ -13,11 +12,11 @@ import "./EraserBrush";
 import * as data from "./import.json";
 import * as data2 from "./import2.json";
 import * as data3 from "./import3.json";
-import svg from "./svg.svg";
-import svg2 from "./svg2.svg";
+import { Configuration, OpenAIApi } from "openai";
 
 fabric.Object.NUM_FRACTION_DIGITS = 12;
 fabric.Object.prototype.erasable = true;
+
 
 const __onResize = fabric.Canvas.prototype._onResize;
 
@@ -44,15 +43,27 @@ export default function Carousel({
 }) {
   const router = useRouter();
   const [, setLastViewedPhoto] = useLastViewedPhoto();
+  const [canvasUrl, setCanvasUrl] = useState<string | null>(currentPhoto.public_id);
 
   function closeModal() {
     setLastViewedPhoto(currentPhoto.id);
     router.push("/", undefined, { shallow: true });
   }
 
-  function changePhotoId(newVal: number) {
-    return newVal;
+  function showPicture(link){
+    fetch(link)
+    // .then(response => response.json())
+    // .then(data => {
+    //     setCanvasUrl(data.url);
+    // })
+    // .catch(error => console.error(error));
   }
+
+  const configuration = new Configuration({
+    apiKey: process.env.OPENAI_API_KEY,
+  });
+  const apiKey = process.env.OPENAI_API_KEY;
+  const openai = new OpenAIApi(configuration);
 
   useKeypress("Escape", () => {
     closeModal();
@@ -86,8 +97,6 @@ export default function Carousel({
 
   useEffect(() => {
     const canvas = new fabric.Canvas("c", {
-      width: 1200,
-      height: 800,
       //overlayColor: "rgba(0,0,255,0.4)",
     });
     canvas.on("selection:created", async (e) => {});
@@ -119,7 +128,7 @@ export default function Carousel({
       //{ crossOrigin: "anonymous" }
     );
     ref.current = canvas;
-  }, []);
+  }, [canvasUrl]);
 
   useEffect(() => {
     const fc = ref.current!;
@@ -159,7 +168,34 @@ export default function Carousel({
     className="relative z-50 flex aspect-[3/2] w-full max-w-7xl items-center wide:h-full xl:taller-than-854:h-auto"
   >
     {/* Main image */}
-      <canvas id="c" width={500} height={500} />
+      <canvas id="c" width={800} height={600} />
+      <input>
+      </input>
+        <Image
+        src = {canvasUrl}
+        alt = "Picture of the author"
+        width = {500}
+        height = {500}
+        >
+          
+        </Image>
+        <button
+          onClick={() => {
+            const ext = "png";
+            const canvas = ref.current!;
+            const base64 = canvas.toDataURL({
+              format: ext,
+              enableRetinaScaling: true,
+            });
+            const link = document.createElement("a");
+            link.href = base64;
+            link.download = `eraser_example.${ext}`;
+            link.click();
+            showPicture(link.href);
+          }}
+        >
+          Change Me
+        </button>
   </div>
   );
 }

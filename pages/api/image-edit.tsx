@@ -1,17 +1,28 @@
-import fs from 'fs';
 import FormData from 'form-data';
 import fetch from 'node-fetch';
+import { Buffer } from 'buffer';
+
+export const config = {
+  api: {
+      bodyParser: {
+          sizeLimit: '4mb' // Set desired value here
+      }
+  }
+}
 
 export default async function handler(req, res) {
   if (req.method === 'POST') {
     try {
-      const imageFilePath = 'public/canvas-image.png';
-      const imageBuffer = fs.readFileSync(imageFilePath);
       const imageType = 'image/png';
-
+      const imageBase64Data = req.body.split(',')[1];
+      const editBase64Data = req.body.split(',')[2];
+      //const prompt = req.body.split(',')[3];
+      const imageBuffer = Buffer.from(imageBase64Data, 'base64');
+      const editBuffer = Buffer.from(editBase64Data, 'base64');
       const form = new FormData();
       form.append('image', imageBuffer, { contentType: imageType, filename: 'canvas-image.png' });
-      form.append('prompt', 'Make the shoe blue in this picture');
+      form.append('mask', editBuffer, { contentType: imageType, filename: 'canvas-image-mask.png' });
+      form.append('prompt', '3D Style');
       form.append('n', 1);
       form.append('size', '512x512');
       form.append('response_format', 'url');

@@ -1,6 +1,6 @@
 import { useRouter } from "next/router";
 import useKeypress from "react-use-keypress";
-import Image from 'next/image'
+import Image from "next/image";
 import type { ImageProps } from "../utils/types";
 import { useLastViewedPhoto } from "../utils/useLastViewedPhoto";
 import { useEffect, useState } from "react";
@@ -16,7 +16,6 @@ import { Configuration, OpenAIApi } from "openai";
 
 fabric.Object.NUM_FRACTION_DIGITS = 12;
 fabric.Object.prototype.erasable = true;
-
 
 const __onResize = fabric.Canvas.prototype._onResize;
 
@@ -43,20 +42,33 @@ export default function Carousel({
 }) {
   const router = useRouter();
   const [, setLastViewedPhoto] = useLastViewedPhoto();
-  const [canvasUrl, setCanvasUrl] = useState<string | null>(currentPhoto.public_id);
+  const [canvasUrl, setCanvasUrl] = useState<string | null>(
+    currentPhoto.public_id
+  );
+  const [base64, setBase64] = useState<string | null>(null);
 
   function closeModal() {
     setLastViewedPhoto(currentPhoto.id);
     router.push("/", undefined, { shallow: true });
   }
 
-  function showPicture(link){
-    fetch(link)
-    // .then(response => response.json())
-    // .then(data => {
-    //     setCanvasUrl(data.url);
-    // })
-    // .catch(error => console.error(error));
+  function showPicture(edit64,prompt) {
+    // Create a FormData object
+    const form = new FormData();
+    form.append("image", base64);
+    form.append("mask", edit64);
+    form.append("prompt", prompt);
+
+    // Send a POST request to the server
+    fetch("/api/image-edit", {
+      method: "POST",
+      body: form,
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        setCanvasUrl(data.data[0].url);
+      })
+      .catch((error) => console.error(error));
   }
 
   const configuration = new Configuration({
@@ -96,7 +108,13 @@ export default function Carousel({
   }, []);
 
   useEffect(() => {
+    console.log("base64", base64);
+  }, [base64, canvasUrl]);
+
+  useEffect(() => {
     const canvas = new fabric.Canvas("c", {
+      width: 500,
+      height: 500,
       //overlayColor: "rgba(0,0,255,0.4)",
     });
     canvas.on("selection:created", async (e) => {});
@@ -124,11 +142,17 @@ export default function Carousel({
           targets.map((t) => t.getEraser());
         });
         canvas.renderAll();
+        setBase64(
+          canvas.toDataURL({
+            format: "png",
+            enableRetinaScaling: true,
+          })
+        );
       }
       //{ crossOrigin: "anonymous" }
     );
     ref.current = canvas;
-  }, [canvasUrl]);
+  }, []);
 
   useEffect(() => {
     const fc = ref.current!;
@@ -163,39 +187,36 @@ export default function Carousel({
     d?.set({ erasable: erasable1 });
   }, [erasable1]);
 
+  const handleSubmit = (event) => {
+    event.preventDefault(); // this will prevent the default action of navigating the page
+    const ext = "png";
+    const canvas = ref.current!;
+    canvas.width = 500;
+    canvas.height = 500;
+    const base64 = canvas.toDataURL({
+      format: ext,
+      enableRetinaScaling: true,
+    });
+    console.log(event.target.elements.prompt.value);
+    showPicture(base64,event.target.elements.prompt.value);
+  };
   return (
-    <div
-    className="relative z-50 flex aspect-[3/2] w-full max-w-7xl items-center wide:h-full xl:taller-than-854:h-auto"
-  >
-    {/* Main image */}
-      <canvas id="c" width={800} height={600} />
-      <input>
-      </input>
-        <Image
-        src = {canvasUrl}
-        alt = "Picture of the author"
-        width = {500}
-        height = {500}
-        >
-          
-        </Image>
-        <button
-          onClick={() => {
-            const ext = "png";
-            const canvas = ref.current!;
-            const base64 = canvas.toDataURL({
-              format: ext,
-              enableRetinaScaling: true,
-            });
-            const link = document.createElement("a");
-            link.href = base64;
-            link.download = `eraser_example.${ext}`;
-            link.click();
-            showPicture(link.href);
-          }}
-        >
-          Change Me
-        </button>
-  </div>
+    <div className="relative z-50 flex aspect-[3/2] w-full max-w-7xl items-center wide:h-full xl:taller-than-854:h-auto">
+      {/* Main image */}
+      <canvas id="c" width={500} height={500} />
+      <Image
+        src={canvasUrl}
+        alt="Picture of the author"
+        width={500}
+        height={500}
+      ></Image>
+      <form onSubmit={handleSubmit}>
+      <label>
+        Prompt:
+        <input id="prompt" type="text" value={'Maimi Vice Theme'}/>
+      </label>
+      <button type="submit">Submit</button>
+      </form>
+    </div>
   );
 }

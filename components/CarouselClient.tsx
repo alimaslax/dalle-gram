@@ -46,6 +46,7 @@ export default function Carousel({
     currentPhoto.public_id
   );
   const [base64, setBase64] = useState<string | null>(null);
+  const [prompt, setPrompt] = useState<string | null>(null);
 
   function closeModal() {
     setLastViewedPhoto(currentPhoto.id);
@@ -106,13 +107,15 @@ export default function Carousel({
     fabric.Image.fromURL(
       `/proxy?url=${encodeURIComponent(currentPhoto.public_id)}`,
       function (img) {
-        // Scale the image to fit the width of the canvas
-        const scaleFactor = canvas.width;
-        img.scaleToWidth(canvas.width);
-        img.scaleToHeight(canvas.height);
-        //img.set({ opacity: 0.7 });
-        canvas.setBackgroundImage(img);
-        img.set({ erasable });
+        img.set({
+          erasable,
+          selectable: true,
+          scaleX: (canvas.width) / img.width,
+          scaleY: (canvas.height) / img.height,
+        });
+
+        canvas.add(img);
+
         canvas.on("erasing:end", ({ targets, drawables }) => {
           console.log(
             "objects:",
@@ -168,13 +171,12 @@ export default function Carousel({
     d?.set({ erasable: erasable1 });
   }, [erasable1]);
 
-
-
-  function showPicture(edit64,prompt) {
+  function showPicture(edit64, prompt) {
     // Create a FormData object
     const form = new FormData();
     form.append("image", base64);
     form.append("mask", edit64);
+    console.log(prompt + "prompt");
     form.append("prompt", prompt);
 
     // Send a POST request to the server
@@ -188,54 +190,108 @@ export default function Carousel({
       })
       .catch((error) => console.error(error));
   }
-  
+
   const handleSubmit = (event) => {
     event.preventDefault(); // this will prevent the default action of navigating the page
     const ext = "png";
     const canvas = ref.current!;
-    const prompt = event.target.elements.prompt.value;
     canvas.width = 500;
     canvas.height = 500;
     const base64 = canvas.toDataURL({
       format: ext,
       enableRetinaScaling: true,
     });
-    console.log(prompt);
-    showPicture(base64,prompt);
+    showPicture(base64, prompt);
+  };
+  const handleDownload = () => {
+    event.preventDefault(); // this will prevent the default action of navigating the page
+    const ext = "png";
+    const canvas = ref.current!;
+    canvas.width = 512;
+    canvas.height = 512;
+    const base64 = canvas.toDataURL({
+      format: ext,
+      enableRetinaScaling: true,
+    });
+    const link = document.createElement("a");
+    link.href = base64;
+    link.download = `eraser_example.${ext}`;
+    link.click();
+  };
+  const changeAction = (curr_action) => {
+    curr_action == 0 ? setAction(1) : null;
+    curr_action == 1 ? setAction(0) : null;
   };
   return (
     <div className="relative z-50 flex aspect-[3/2] w-full max-w-7xl items-center wide:h-full xl:taller-than-854:h-auto">
       {/* Main image */}
-      <canvas id="c" width={500} height={500} />
       <Image
         src={canvasUrl}
         alt="Picture of the author"
-        width={500}
-        height={500}
-      ></Image>
-      <form onSubmit={handleSubmit}>
-      <label>
-        Prompt:
-        <input 
-        style={{ 
-          padding: '0.5rem',
-          borderRadius: '0.3rem',
-          border: '1px solid #ccc',
-          marginLeft: '1rem'
-        }}
-        id="prompt" type="text" value={'A Dream of a Distant Galaxy'}/>
-      </label>
-      <button
-        style={{
-          padding: '0.5rem 2rem',
-          backgroundColor: '#0077c2',
-          color: '#fff',
-          border: 'none',
-          borderRadius: '0.3rem',
-          fontSize: '1.2rem',
-          cursor: 'pointer'
-        }} type="submit">Submit</button>
-      </form>
+        width={412}
+        height={412}
+      />
+      <div className="flex flex-col">
+        {" "}
+        {/* Wrap the form in a new flex container */}
+        <div style={{ padding: "5px" }}>
+          <canvas id="c" />
+        </div>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+          }}
+        >
+          <input
+            style={{
+              padding: "0.5rem",
+              borderRadius: "0.3rem",
+              border: "1px solid #ccc",
+              marginLeft: "1rem",
+              marginRight: "1rem",
+            }}
+            id="prompt"
+            type="text"
+            value={prompt}
+            onChange={(e) => setPrompt(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                handleSubmit(e);
+              }
+            }}
+          />
+          <button
+            style={{
+              padding: "0.5rem 2rem",
+              backgroundColor: "#0077c2",
+              color: "#fff",
+              border: "none",
+              borderRadius: "0.3rem",
+              fontSize: "1.2rem",
+              cursor: "pointer",
+            }}
+            type="submit"
+            onClick={handleDownload}
+          >
+            Download Edit
+          </button>
+          <button
+            style={{
+              padding: "0.5rem 2rem",
+              backgroundColor: `${action == 0 ? "red" : "green"}`,
+              color: "#fff",
+              border: "none",
+              borderRadius: "0.3rem",
+              fontSize: "1.2rem",
+              cursor: "pointer",
+            }}
+            type="submit"
+            onClick={() => changeAction(action)}
+          >
+            {action == 0 ? "Erase" : "Select"}
+          </button>
+        </form>
+      </div>
     </div>
   );
 }

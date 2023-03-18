@@ -2,16 +2,30 @@ const express = require("express");
 const next = require("next");
 const cors = require("cors");
 const https = require("https"); // Import the built-in https module
+const multer = require("multer");
 
 const dev = process.env.NODE_ENV !== "production";
 const app = next({ dev });
 const handle = app.getRequestHandler();
 
+
 app.prepare().then(() => {
   const server = express();
 
+  // Create a multer instance with the desired storage options
+  const storage = multer.memoryStorage();
+  const upload = multer({
+    storage: storage,
+    limits: {
+      fieldSize: 4 * 1024 * 1024, // Set the field size limit to 4MB
+    },
+  });
+
   // Enable CORS for all routes
   server.use(cors());
+
+  // Use the multer middleware to handle the request body
+  server.use(upload.fields([]));
 
   // Add middleware to log incoming requests
   server.use((req, res, next) => {
@@ -27,18 +41,22 @@ app.prepare().then(() => {
       return;
     }
 
-    https.get(imageUrl, (imageResponse) => {
-      if (imageResponse.statusCode !== 200) {
-        res.status(imageResponse.statusCode).send(imageResponse.statusMessage);
-        return;
-      }
+    https
+      .get(imageUrl, (imageResponse) => {
+        if (imageResponse.statusCode !== 200) {
+          res
+            .status(imageResponse.statusCode)
+            .send(imageResponse.statusMessage);
+          return;
+        }
 
-      res.setHeader("Content-Type", imageResponse.headers["content-type"]);
-      imageResponse.pipe(res);
-    }).on("error", (error) => {
-      console.error("Error fetching image:", error);
-      res.status(500).send("Error fetching image");
-    });
+        res.setHeader("Content-Type", imageResponse.headers["content-type"]);
+        imageResponse.pipe(res);
+      })
+      .on("error", (error) => {
+        console.error("Error fetching image:", error);
+        res.status(500).send("Error fetching image");
+      });
   });
 
   server.all("*", (req, res) => {

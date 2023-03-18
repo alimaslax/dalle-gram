@@ -70,8 +70,8 @@ export default function Carousel({
   
   useEffect(() => {
     if (typeof window !== "undefined") {
-      editor?.canvas.setWidth(512);
-      editor?.canvas.setHeight(512);
+      editor?.canvas.setWidth(1024);
+      editor?.canvas.setHeight(1024);
     }
   
     if (!editor?.canvas.getObjects().length) {

@@ -90,7 +90,9 @@ export default async function handler(req, res) {
       };
 
       //const completion = await response.json();
-      res.status(200).json(completion);
+      setTimeout(() => {
+        res.status(200).json(completion);
+      }, 4000);
     } catch (error) {
       res.status(500).json({ error: error.message });
     }

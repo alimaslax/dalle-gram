@@ -7,3 +7,31 @@
     clip-path: inset(0.6px);
   }
 }
+
+.input-container {
+  display: flex;
+  align-items: center;
+  padding: 20px 0 15px 0;
+}
+
+.input {
+  flex-grow: 1;
+  padding: 10px;
+}
+
+.button-container {
+  display: flex;
+  flex-direction: row-reverse;
+}
+
+.download-container {
+  fill: blue;
+  padding-left: 15px;
+}
+.download-container:hover path {
+  fill: blue;
+}
+
+.editor-container:hover path {
+  fill: green;
+}

@@ -13,6 +13,9 @@ import * as data from "./import.json";
 import * as data2 from "./import2.json";
 import * as data3 from "./import3.json";
 import { Configuration, OpenAIApi } from "openai";
+import Edit from "./Icons/Edit";
+import Download from "./Icons/Download";
+import Move from "./Icons/Move";
 
 fabric.Object.NUM_FRACTION_DIGITS = 12;
 fabric.Object.prototype.erasable = true;
@@ -47,6 +50,7 @@ export default function Carousel({
   );
   const [base64, setBase64] = useState<string | null>(null);
   const [prompt, setPrompt] = useState<string | null>(null);
+  const [loading, setLoading] = useState<boolean | null>(false);
 
   function closeModal() {
     setLastViewedPhoto(currentPhoto.id);
@@ -69,29 +73,9 @@ export default function Carousel({
   const ref = useRef<fabric.Canvas>(null);
   const i = useRef<number>(2);
 
-  const load = useCallback(() => {
-    const canvas = ref.current!;
-    canvas.loadFromJSON(
-      JSON_DATA[i.current % 3],
-      () => {
-        canvas.renderAll();
-        const d = canvas.get("backgroundImage");
-        d?.set({ erasable });
-        const d2 = canvas.get("overlayColor");
-        d2?.set({ erasable: erasable1 });
-      },
-      function (o, object) {
-        fabric.log(o, object);
-        /*
-         */
-      }
-    );
-    i.current = i.current + 1;
-  }, []);
-
   useEffect(() => {
-    console.log("base64", base64);
-  }, [base64, canvasUrl]);
+    console.log("state Changed", canvasUrl);
+  }, [base64, canvasUrl, loading]);
 
   useEffect(() => {
     const canvas = new fabric.Canvas("c", {
@@ -110,8 +94,8 @@ export default function Carousel({
         img.set({
           erasable,
           selectable: true,
-          scaleX: (canvas.width) / img.width,
-          scaleY: (canvas.height) / img.height,
+          scaleX: canvas.width / img.width,
+          scaleY: canvas.height / img.height,
         });
 
         canvas.add(img);
@@ -172,6 +156,7 @@ export default function Carousel({
   }, [erasable1]);
 
   function showPicture(edit64, prompt) {
+    setLoading(true);
     // Create a FormData object
     const form = new FormData();
     form.append("image", base64);
@@ -186,9 +171,13 @@ export default function Carousel({
     })
       .then((response) => response.json())
       .then((data) => {
+        setLoading(false);
         setCanvasUrl(data.data[0].url);
       })
-      .catch((error) => console.error(error));
+      .catch((error) => {
+        setLoading(false);
+        console.error(error);
+      });
   }
 
   const handleSubmit = (event) => {
@@ -203,7 +192,7 @@ export default function Carousel({
     });
     showPicture(base64, prompt);
   };
-  const handleDownload = () => {
+  const handleDownload = (event) => {
     event.preventDefault(); // this will prevent the default action of navigating the page
     const ext = "png";
     const canvas = ref.current!;
@@ -223,35 +212,26 @@ export default function Carousel({
     curr_action == 1 ? setAction(0) : null;
   };
   return (
-    <div className="relative z-50 flex aspect-[3/2] w-full max-w-7xl items-center wide:h-full xl:taller-than-854:h-auto">
-      {/* Main image */}
-      <Image
-        src={canvasUrl}
-        alt="Picture of the author"
-        width={412}
-        height={412}
-      />
-      <div className="flex flex-col">
-        {" "}
-        {/* Wrap the form in a new flex container */}
-        <div style={{ padding: "5px" }}>
-          <canvas id="c" />
-        </div>
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-          }}
-        >
+    <div className="relative z-50 flex aspect-[4/3] items-center md:aspect-[3/2]">
+      {loading ? (
+        <svg xmlns="http://www.w3.org/2000/svg" width="500" height="500">
+          <image xlinkHref="/loading.svg" width="100%" height="100%" />
+        </svg>
+      ) : (
+        <Image
+          src={canvasUrl}
+          alt="Canvas Image"
+          width={500}
+          height={500}
+        />
+      )}
+      <div className="flex flex-col px-10">
+        <canvas id="c" />
+        <div className="input-container">
           <input
-            style={{
-              padding: "0.5rem",
-              borderRadius: "0.3rem",
-              border: "1px solid #ccc",
-              marginLeft: "1rem",
-              marginRight: "1rem",
-            }}
-            id="prompt"
             type="text"
+            placeholder="Enter text here"
+            className="input"
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
             onKeyDown={(e) => {
@@ -260,37 +240,22 @@ export default function Carousel({
               }
             }}
           />
-          <button
-            style={{
-              padding: "0.5rem 2rem",
-              backgroundColor: "#0077c2",
-              color: "#fff",
-              border: "none",
-              borderRadius: "0.3rem",
-              fontSize: "1.2rem",
-              cursor: "pointer",
-            }}
-            type="submit"
-            onClick={handleDownload}
-          >
-            Download Edit
-          </button>
-          <button
-            style={{
-              padding: "0.5rem 2rem",
-              backgroundColor: `${action == 0 ? "red" : "green"}`,
-              color: "#fff",
-              border: "none",
-              borderRadius: "0.3rem",
-              fontSize: "1.2rem",
-              cursor: "pointer",
-            }}
-            type="submit"
+        </div>
+        <div className="button-container">
+          <div className="download-container" onClick={handleDownload}>
+            <Download className="download-button" />
+          </div>
+          <div
+            className="editor-container"
             onClick={() => changeAction(action)}
           >
-            {action == 0 ? "Erase" : "Select"}
-          </button>
-        </form>
+            {action == 0 ? (
+              <Edit className="edit-button" />
+            ) : (
+              <Move className="move-button" />
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );

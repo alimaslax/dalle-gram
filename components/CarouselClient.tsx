@@ -18,6 +18,7 @@ import Download from "./Icons/Download";
 import Move from "./Icons/Move";
 import Brush from "./Icons/Brush";
 import Erase from "./Icons/Erase";
+import Spray from "./Icons/Spray";
 
 fabric.Object.NUM_FRACTION_DIGITS = 12;
 fabric.Object.prototype.erasable = true;
@@ -69,7 +70,7 @@ export default function Carousel({
     closeModal();
   });
 
-  const [action, setAction] = useState(2);
+  const [action, setAction] = useState(3);
   const [isNotErasable] = useState(false);
   const [erasable, setErasable] = useState(true);
   const ref = useRef<fabric.Canvas>(null);
@@ -153,11 +154,18 @@ export default function Carousel({
         fc.freeDrawingBrush = new fabric.SprayBrush(fc);
         fc.freeDrawingBrush.color = "rgb(204,204,204)";
         fc.freeDrawingBrush.width = 80;
-        fc.freeDrawingBrush.density = 80;
-        fc.freeDrawingBrush.dotWidth = 3;
+        fc.freeDrawingBrush.density = 50;
+        fc.freeDrawingBrush.dotWidth = 2;
+        fc.isDrawingMode = true;
+        break;
+      case 3:
+        fc.freeDrawingBrush = new fabric.PencilBrush(fc);
+        fc.freeDrawingBrush.color = "rgb(204,204,204)";
+        fc.freeDrawingBrush.width = 80;
         fc.isDrawingMode = true;
         break;
       default:
+        fc.isDrawingMode = false;
         break;
     }
   }, [action]);
@@ -239,6 +247,9 @@ export default function Carousel({
       case 'brush':
         setAction(2);
         break;
+      case 'spray':
+        setAction(3);
+        break;
     }
   };
   return (
@@ -274,17 +285,24 @@ export default function Carousel({
             <Move className="move-button" />
           </div>
           <div
-            className="erase-container"
+            className={`erase-container ${action === 0 ? "active" : ""}`}
             onClick={() => changeAction("erase")}
           >
-            <Erase className="edit-button" />
+            <Erase className="erase-button" />
           </div>
 
+
           <div
-            className="brush-container"
+            className={`spray-container ${action === 3 ? "active" : ""}`}
+            onClick={() => changeAction("spray")}
+          >
+            <Spray className="spray-button" />
+          </div>
+          <div
+            className={`brush-container ${action === 2 ? 'active' : ''}`}
             onClick={() => changeAction("brush")}
           >
-            <Brush className="edit-button" />
+            <Brush className="brush-button" />
           </div>
         </div>
       </div>

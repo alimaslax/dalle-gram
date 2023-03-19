@@ -1,7 +1,6 @@
 import FormData from 'form-data';
 import fetch from "node-fetch";
 import { Buffer } from "buffer";
-import querystring from 'querystring';
 import sharp from "sharp";
 
 const fs = require("fs");
@@ -26,22 +25,40 @@ export default async function handler(req, res) {
       let editBuffer = Buffer.from(maskBase64Data, "base64");
 
       // Resize the image to a square aspect ratio
-      editBuffer = await sharp(editBuffer)
-      .resize({
-        width: 512,
-        height: 512,
-        fit: 'inside',
-        withoutEnlargement: true
-      })
-      .extend({
-        top: 0,
-        bottom: 0,
-        left: 0,
-        right: 0,
-        background: { r: 255, g: 255, b: 255, alpha: 1 }
-      })
-      .png()
-      .toBuffer();
+      // imageBuffer = await sharp(imageBuffer)
+      // .resize({
+      //   width: 512,
+      //   height: 512,
+      //   fit: 'inside',
+      //   withoutEnlargement: true
+      // })
+      // .extend({
+      //   top: 0,
+      //   bottom: 0,
+      //   left: 0,
+      //   right: 0,
+      //   background: { r: 255, g: 255, b: 255, alpha: 1 }
+      // })
+      // .png()
+      // .toBuffer();
+
+      // // Resize the mask to a square aspect ratio
+      // editBuffer = await sharp(editBuffer)
+      // .resize({
+      //   width: 512,
+      //   height: 512,
+      //   fit: 'inside',
+      //   withoutEnlargement: true
+      // })
+      // .extend({
+      //   top: 0,
+      //   bottom: 0,
+      //   left: 0,
+      //   right: 0,
+      //   background: { r: 255, g: 255, b: 255, alpha: 1 }
+      // })
+      // .png()
+      // .toBuffer();
 
       if (imageBuffer.length > 4 * 1024 * 1024) {
         // Compress the image if it is larger than 4MB
@@ -57,14 +74,13 @@ export default async function handler(req, res) {
           .toBuffer();
       }
     
-      // const form = new FormData();
-      // form.append('image', imageBuffer, { contentType: imageType, filename: 'canvas-image.png' });
-      // form.append('mask', editBuffer, { contentType: imageType, filename: 'canvas-image.png' });
-      // form.append('prompt', prompt);
-      // form.append('n', 1);
-      // form.append('size', '512x512');
-      // form.append('response_format', 'url');
-      // form.append('user', 'your-end-user-unique-id');
+      const form = new FormData();
+      form.append('image', imageBuffer, { contentType: imageType, filename: 'canvas-image.png' });
+      form.append('mask', editBuffer, { contentType: imageType, filename: 'canvas-image.png' });
+      form.append('prompt', prompt);
+      form.append('n', 1);
+      form.append('size', '512x512');
+      form.append('response_format', 'url');
 
       // const response = await fetch('https://api.openai.com/v1/images/edits', {
       //   method: 'POST',
@@ -79,7 +95,7 @@ export default async function handler(req, res) {
       // Read the file as a binary data buffer
       // Encode the buffer as a base64-encoded string
       // Construct the `data` object with the base64-encoded string as the image data
-      // const imgBuffer = fs.readFileSync("./public/canvas-image.png");
+      const imgBuffer = fs.readFileSync("./public/canvas-image.png");
       const base64Img = editBuffer.toString("base64");
       const completion = {
         data: [
@@ -88,11 +104,12 @@ export default async function handler(req, res) {
           },
         ],
       };
+      // setTimeout(() => {
+      //   res.status(200).json(completion);
+      // }, 4000);
 
       //const completion = await response.json();
-      setTimeout(() => {
-        res.status(200).json(completion);
-      }, 4000);
+      res.status(200).json(completion);
     } catch (error) {
       res.status(500).json({ error: error.message });
     }

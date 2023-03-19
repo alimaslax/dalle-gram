@@ -165,7 +165,7 @@ export default function Carousel({
     form.append("prompt", prompt);
 
     // Send a POST request to the server
-    fetch("/api/image-edit", {
+    fetch("/api/dream-edit", {
       method: "POST",
       body: form,
     })

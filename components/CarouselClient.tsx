@@ -25,10 +25,18 @@ fabric.Object.prototype.erasable = true;
 
 const __onResize = fabric.Canvas.prototype._onResize;
 
+const __onDragOver = fabric.Canvas.prototype._onDragOver;
+
 if (typeof window !== "undefined") {
   fabric.util.object.extend(fabric.Canvas.prototype, {
     _onResize(this: fabric.Canvas) {
-      // blank callback, placeholder for custom resize logic
+      console.log("Object resized");
+      // DO NOT ENABLE THIS
+      //__onResize.call(this);
+    },
+    _onDragOver(this: fabric.Canvas) {
+      // custom event handler for canvas:moved event
+      __onDragOver.call(this);
     },
   });
 }
@@ -69,13 +77,29 @@ export default function Carousel({
   const [action, setAction] = useState(1);
   const [isNotErasable] = useState(false);
   const [erasable, setErasable] = useState(true);
+  const [isSelectable, setIsSelectable] = useState(true);
   const [slider, setSlider] = useState(20);
   const ref = useRef<fabric.Canvas>(null);
   const i = useRef<number>(2);
 
+  function getBase64Url(canvas: fabric.Canvas) {
+    const ext = "png";
+    // if canvas is not loaded yet
+    return canvas?.toDataURL({
+      format: ext,
+      enableRetinaScaling: false,
+    });
+  }
+
+  useEffect(() => {
+    setBase64(getBase64Url(ref.current!));
+  }, [isSelectable]);
+
+
   useEffect(() => {
     console.log("state Changed", canvasUrl);
   }, [base64, canvasUrl, loading]);
+
 
   useEffect(() => {
     const canvas = new fabric.Canvas("c", {
@@ -89,13 +113,14 @@ export default function Carousel({
     canvas.on("selection:updated", (e) => {
       //console.log(e.target.getEraser());
     });
+
     console.log(currentPhoto.public_id);
     fabric.Image.fromURL(
       `/proxy?url=${encodeURIComponent(currentPhoto.public_id)}`,
       function (img) {
         img.set({
           erasable1: erasable,
-          selectable: true,
+          selectable: isSelectable,
         });
         // Calculate the scale factor to fit the image on the canvas
         const scaleFactor = Math.min(
@@ -115,9 +140,38 @@ export default function Carousel({
         });
         canvas.add(img);
 
+        canvas.on({
+          "mouse:down": function (e) {
+            if (e.target) {
+              e.target.opacity = 0.9;
+              canvas.renderAll();
+            }
+          },
+          "mouse:up": function (e) {
+            if (e.target) {
+              e.target.opacity = 1;
+              canvas.renderAll();
+            }
+          },
+          "object:moved": function (e) {
+            e.target.opacity = 0.5;
+          },
+          "object:modified": function (e) {
+            e.target.opacity = 1;
+          },
+        });
+
+        canvas.on("erasing:start", ({ targets }) => {
+          setIsSelectable(false);
+        });
+
+        // custom canvas fire event
         canvas.on("erasing:end", ({ targets, drawables }) => {
+          img.set({
+            selectable: false,
+          });
           console.log(
-            "objects:",
+            "objects: Placeholders for undo/redo",
             targets.map((t) => t.type),
             "drawables:",
             Object.keys(drawables)
@@ -127,12 +181,7 @@ export default function Carousel({
         canvas.renderAll();
 
         // save original image
-        setBase64(
-          canvas.toDataURL({
-            format: "png",
-            enableRetinaScaling: true,
-          })
-        );
+        setBase64(getBase64Url(canvas));
       }
       //{ crossOrigin: "anonymous" }
     );
@@ -207,30 +256,23 @@ export default function Carousel({
 
   const handleSubmit = (event) => {
     event.preventDefault(); // this will prevent the default action of navigating the page
-    const ext = "png";
     let canvas = ref.current!;
     // Bring the bottom layer to the front
     const bottomObject = canvas.getObjects()[0];
     canvas.remove(bottomObject);
 
-    const base64 = canvas.toDataURL({
-      format: ext,
-      enableRetinaScaling: false,
-    });
-    showPicture(base64, prompt);
+    const mask64 = getBase64Url(canvas);
+    showPicture(mask64, prompt);
   };
 
   const handleDownload = (event) => {
     event.preventDefault(); // this will prevent the default action of navigating the page
     const ext = "png";
     let canvas = ref.current!;
-    const base64 = canvas.toDataURL({
-      format: ext,
-      enableRetinaScaling: false,
-    });
-    
+    const mask64 = getBase64Url(canvas);
+
     const link = document.createElement("a");
-    link.href = base64;
+    link.href = mask64;
     link.download = `eraser_example.${ext}`;
     link.click();
   };
@@ -311,8 +353,10 @@ export default function Carousel({
           <div className="download-container" onClick={handleDownload}>
             <Download className="download-button" />
           </div>
-          <div className={`move-container ${action === 1 ? "active" : ""}`}
-           onClick={() => changeAction("move")}>
+          <div
+            className={`move-container ${action === 1 ? "active" : ""}`}
+            onClick={() => changeAction("move")}
+          >
             <Move className="move-button" />
           </div>
           <div

@@ -34,3 +34,8 @@ pnpm create next-app --example with-cloudinary nextjs-image-gallery
 https://codesandbox.io/s/focused-christian-7s5gx?file=/src/App.tsx
 
 https://codesandbox.io/s/cocky-dewdney-22i9eb?file=/src/App.tsx
+
+http://fabricjs.com/docs/fabric.js.html
+
+
+http://fabricjs.com/customization

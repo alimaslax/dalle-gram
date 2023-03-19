@@ -31,4 +31,6 @@ pnpm create next-app --example with-cloudinary nextjs-image-gallery
 - Cloudinary API: https://cloudinary.com/documentation/transformation_reference
 
 
-https://codesandbox.io/s/focused-christian-7s5gx?file=/src/fabric.js
+https://codesandbox.io/s/focused-christian-7s5gx?file=/src/App.tsx
+
+https://codesandbox.io/s/cocky-dewdney-22i9eb?file=/src/App.tsx

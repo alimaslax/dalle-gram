@@ -36,6 +36,20 @@ path {
   fill: rgb(117, 117, 249);
 }
 
-.editor-container:hover path {
+.move-container:hover path {
+  fill: yellow;
+}
+
+.brush-container:hover path {
   fill: green;
+}
+
+.erase-container:hover path {
+  fill: red;
+}
+
+
+.canvas{
+  width: 512px !important;
+  height: 512px !important;
 }

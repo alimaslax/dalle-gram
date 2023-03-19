@@ -13,9 +13,11 @@ import * as data from "./import.json";
 import * as data2 from "./import2.json";
 import * as data3 from "./import3.json";
 import { Configuration, OpenAIApi } from "openai";
-import Edit from "./Icons/Edit";
+import Edit from "./Icons/Erase";
 import Download from "./Icons/Download";
 import Move from "./Icons/Move";
+import Brush from "./Icons/Brush";
+import Erase from "./Icons/Erase";
 
 fabric.Object.NUM_FRACTION_DIGITS = 12;
 fabric.Object.prototype.erasable = true;
@@ -23,15 +25,15 @@ fabric.Object.prototype.erasable = true;
 const __onResize = fabric.Canvas.prototype._onResize;
 
 if (typeof window !== "undefined") {
-  fabric.util.object.extend(fabric.Canvas.prototype, {
-    _onResize(this: fabric.Canvas) {
-      this.setDimensions(
-        { width: window.innerWidth, height: window.innerHeight },
-        false
-      );
-      __onResize.call(this);
-    },
-  });
+  // fabric.util.object.extend(fabric.Canvas.prototype, {
+  //   _onResize(this: fabric.Canvas) {
+  //     this.setDimensions(
+  //       { width: window.innerWidth, height: window.innerHeight },
+  //       false
+  //     );
+  //     __onResize.call(this);
+  //   },
+  // });
 }
 
 const JSON_DATA = [data, data2, data3];
@@ -67,9 +69,9 @@ export default function Carousel({
     closeModal();
   });
 
-  const [action, setAction] = useState(0);
+  const [action, setAction] = useState(2);
+  const [isNotErasable] = useState(false);
   const [erasable, setErasable] = useState(true);
-  const [erasable1, setErasable1] = useState(false);
   const ref = useRef<fabric.Canvas>(null);
   const i = useRef<number>(2);
 
@@ -81,8 +83,9 @@ export default function Carousel({
     const canvas = new fabric.Canvas("c", {
       width: 512,
       height: 512,
-      //overlayColor: "rgba(0,0,255,0.4)",
+      backgroundColor: "rgb(255, 255, 255)",
     });
+
     canvas.on("selection:created", async (e) => {});
     canvas.on("selection:updated", (e) => {
       //console.log(e.target.getEraser());
@@ -92,12 +95,25 @@ export default function Carousel({
       `/proxy?url=${encodeURIComponent(currentPhoto.public_id)}`,
       function (img) {
         img.set({
-          erasable,
+          erasable1: erasable,
           selectable: true,
-          scaleX: canvas.width / img.width,
-          scaleY: canvas.height / img.height,
         });
+        // Calculate the scale factor to fit the image on the canvas
+        const scaleFactor = Math.min(
+          (canvas.width / img.width) * 1.9,
+          (canvas.height / img.height) * 1.9
+        );
 
+        // Scale the image to fit the canvas
+        img.scale(scaleFactor);
+        // Center the image on the canvas
+        img.set({
+          left: canvas.width / 2,
+          top: canvas.height / 2,
+          originX: "center",
+          originY: "center",
+          erasable: erasable,
+        });
         canvas.add(img);
 
         canvas.on("erasing:end", ({ targets, drawables }) => {
@@ -127,18 +143,19 @@ export default function Carousel({
     switch (action) {
       case 0:
         fc.freeDrawingBrush = new fabric.EraserBrush(fc);
-        fc.freeDrawingBrush.shadow = new fabric.Shadow({
-          blur: 5,
-          offsetX: 0,
-          offsetY: 0,
-          affectStroke: true,
-          color: "white",
-        });
-        fc.freeDrawingBrush.width = 40;
+        fc.freeDrawingBrush.width = 100;
         fc.isDrawingMode = true;
         break;
       case 1:
         fc.isDrawingMode = false;
+        break;
+      case 2:
+        fc.freeDrawingBrush = new fabric.SprayBrush(fc);
+        fc.freeDrawingBrush.color = "rgb(204,204,204)";
+        fc.freeDrawingBrush.width = 80;
+        fc.freeDrawingBrush.density = 80;
+        fc.freeDrawingBrush.dotWidth = 3;
+        fc.isDrawingMode = true;
         break;
       default:
         break;
@@ -147,13 +164,13 @@ export default function Carousel({
 
   useEffect(() => {
     const d = ref.current!.get("backgroundImage");
-    d?.set({ erasable });
-  }, [erasable]);
+    d?.set({ erasable: isNotErasable });
+  }, [isNotErasable]);
 
   useEffect(() => {
     const d = ref.current!.get("overlayColor");
-    d?.set({ erasable: erasable1 });
-  }, [erasable1]);
+    d?.set({ erasable: erasable });
+  }, [erasable]);
 
   function showPicture(edit64, prompt) {
     setLoading(true);
@@ -183,33 +200,46 @@ export default function Carousel({
   const handleSubmit = (event) => {
     event.preventDefault(); // this will prevent the default action of navigating the page
     const ext = "png";
-    const canvas = ref.current!;
-    canvas.width = 512;
-    canvas.height = 512;
+    let canvas = ref.current!;
+    // Bring the bottom layer to the front
+    const bottomObject = canvas.getObjects()[0];
+    canvas.remove(bottomObject);
+
     const base64 = canvas.toDataURL({
       format: ext,
-      enableRetinaScaling: true,
+      enableRetinaScaling: false,
     });
     showPicture(base64, prompt);
   };
   const handleDownload = (event) => {
     event.preventDefault(); // this will prevent the default action of navigating the page
     const ext = "png";
-    const canvas = ref.current!;
-    canvas.width = 512;
-    canvas.height = 512;
+    let canvas = ref.current!;
+    // Bring the bottom layer to the front
+    const bottomObject = canvas.getObjects()[0];
+    canvas.remove(bottomObject);
+
     const base64 = canvas.toDataURL({
       format: ext,
-      enableRetinaScaling: true,
+      enableRetinaScaling: false,
     });
     const link = document.createElement("a");
     link.href = base64;
     link.download = `eraser_example.${ext}`;
     link.click();
   };
-  const changeAction = (curr_action) => {
-    curr_action == 0 ? setAction(1) : null;
-    curr_action == 1 ? setAction(0) : null;
+  const changeAction = (tool) => {
+    switch(tool){
+      case 'erase':
+        setAction(0);
+        break;
+      case 'move':
+        setAction(1);
+        break;
+      case 'brush':
+        setAction(2);
+        break;
+    }
   };
   return (
     <div className="relative z-50 flex aspect-[4/3] items-center md:aspect-[3/2]">
@@ -218,15 +248,10 @@ export default function Carousel({
           <image xlinkHref="/loading.svg" width="100%" height="100%" />
         </svg>
       ) : (
-        <Image
-          src={canvasUrl}
-          alt="Canvas Image"
-          width={512}
-          height={512}
-        />
+        <Image src={canvasUrl} alt="Canvas Image" width={512} height={512} />
       )}
       <div className="flex flex-col px-10">
-        <canvas id="c" />
+        <canvas className="canvas" id="c" />
         <div className="input-container">
           <input
             type="text"
@@ -245,15 +270,21 @@ export default function Carousel({
           <div className="download-container" onClick={handleDownload}>
             <Download className="download-button" />
           </div>
+          <div className="move-container" onClick={() => changeAction("move")}>
+            <Move className="move-button" />
+          </div>
           <div
-            className="editor-container"
-            onClick={() => changeAction(action)}
+            className="erase-container"
+            onClick={() => changeAction("erase")}
           >
-            {action == 0 ? (
-              <Edit className="edit-button" />
-            ) : (
-              <Move className="move-button" />
-            )}
+            <Erase className="edit-button" />
+          </div>
+
+          <div
+            className="brush-container"
+            onClick={() => changeAction("brush")}
+          >
+            <Brush className="edit-button" />
           </div>
         </div>
       </div>

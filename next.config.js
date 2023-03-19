@@ -1,8 +1,14 @@
 module.exports = {
   images: {
-    formats: ['image/avif', 'image/webp'],
-    domains: ['res.cloudinary.com','scontent-ord5-1.cdninstagram.com','scontent-ord5-2.cdninstagram.com', 'i.imgur.com'
-  ,'oaidalleapiprodscus.blob.core.windows.net'],
+    formats: ["image/avif", "image/webp"],
+    domains: [
+      "res.cloudinary.com",
+      "scontent-ord5-1.cdninstagram.com",
+      "scontent-ord5-2.cdninstagram.com",
+      "i.imgur.com",
+      "oaidalleapiprodscus.blob.core.windows.net",
+      "api.openai.com",
+    ],
   },
   webpack: (config, { isServer }) => {
     // Exclude https-proxy-agent from client-side build
@@ -12,4 +18,4 @@ module.exports = {
 
     return config;
   },
-}
+};

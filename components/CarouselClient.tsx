@@ -79,8 +79,8 @@ export default function Carousel({
 
   useEffect(() => {
     const canvas = new fabric.Canvas("c", {
-      width: 500,
-      height: 500,
+      width: 512,
+      height: 512,
       //overlayColor: "rgba(0,0,255,0.4)",
     });
     canvas.on("selection:created", async (e) => {});
@@ -184,8 +184,8 @@ export default function Carousel({
     event.preventDefault(); // this will prevent the default action of navigating the page
     const ext = "png";
     const canvas = ref.current!;
-    canvas.width = 500;
-    canvas.height = 500;
+    canvas.width = 512;
+    canvas.height = 512;
     const base64 = canvas.toDataURL({
       format: ext,
       enableRetinaScaling: true,
@@ -214,15 +214,15 @@ export default function Carousel({
   return (
     <div className="relative z-50 flex aspect-[4/3] items-center md:aspect-[3/2]">
       {loading ? (
-        <svg xmlns="http://www.w3.org/2000/svg" width="500" height="500">
+        <svg xmlns="http://www.w3.org/2000/svg" width="512" height="512">
           <image xlinkHref="/loading.svg" width="100%" height="100%" />
         </svg>
       ) : (
         <Image
           src={canvasUrl}
           alt="Canvas Image"
-          width={500}
-          height={500}
+          width={512}
+          height={512}
         />
       )}
       <div className="flex flex-col px-10">

@@ -7,6 +7,10 @@
     clip-path: inset(0.6px);
   }
 }
+/** Icons **/
+path {
+  fill: white;
+}
 
 .input-container {
   display: flex;
@@ -25,11 +29,11 @@
 }
 
 .download-container {
-  fill: blue;
-  padding-left: 15px;
+  padding-left: 5px;
 }
+
 .download-container:hover path {
-  fill: blue;
+  fill: rgb(117, 117, 249);
 }
 
 .editor-container:hover path {

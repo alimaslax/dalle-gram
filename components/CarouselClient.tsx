@@ -56,7 +56,7 @@ export default function Carousel({
     currentPhoto.public_id
   );
   const [base64, setBase64] = useState<string | null>(null);
-  const [prompt, setPrompt] = useState<string | null>(null);
+  const [prompt, setPrompt] = useState<string | null>("");
   const [loading, setLoading] = useState<boolean | null>(false);
 
   function closeModal() {
@@ -92,14 +92,8 @@ export default function Carousel({
   }
 
   useEffect(() => {
-    setBase64(getBase64Url(ref.current!));
-  }, [isSelectable]);
-
-
-  useEffect(() => {
     console.log("state Changed", canvasUrl);
-  }, [base64, canvasUrl, loading]);
-
+  }, [base64, canvasUrl, loading, isSelectable]);
 
   useEffect(() => {
     const canvas = new fabric.Canvas("c", {
@@ -140,36 +134,9 @@ export default function Carousel({
         });
         canvas.add(img);
 
-        canvas.on({
-          "mouse:down": function (e) {
-            if (e.target) {
-              e.target.opacity = 0.9;
-              canvas.renderAll();
-            }
-          },
-          "mouse:up": function (e) {
-            if (e.target) {
-              e.target.opacity = 1;
-              canvas.renderAll();
-            }
-          },
-          "object:moved": function (e) {
-            e.target.opacity = 0.5;
-          },
-          "object:modified": function (e) {
-            e.target.opacity = 1;
-          },
-        });
-
-        canvas.on("erasing:start", ({ targets }) => {
-          setIsSelectable(false);
-        });
-
         // custom canvas fire event
+        // useEffect Only Calls them once (With the old canvas ref)
         canvas.on("erasing:end", ({ targets, drawables }) => {
-          img.set({
-            selectable: false,
-          });
           console.log(
             "objects: Placeholders for undo/redo",
             targets.map((t) => t.type),
@@ -179,9 +146,6 @@ export default function Carousel({
           targets.map((t) => t.getEraser());
         });
         canvas.renderAll();
-
-        // save original image
-        setBase64(getBase64Url(canvas));
       }
       //{ crossOrigin: "anonymous" }
     );
@@ -217,7 +181,40 @@ export default function Carousel({
         fc.isDrawingMode = false;
         break;
     }
-  }, [action, slider]);
+    
+
+    // Canvas Action Listeners Must Change with ref.current
+    fc.on({
+      "mouse:down": function (e) {
+        if (e.target?.canvas) {
+          e.target.opacity = 0.9;
+          if (action != 1 && isSelectable) {
+            console.log("HERE");
+            const imgObj = fc.getObjects()[0];
+            imgObj.set({
+              selectable: false,
+            })
+            setIsSelectable(false);
+            setBase64(getBase64Url(e.target.canvas));
+          }
+          // good place to capture before and after of drawable edit of image
+        }
+      },
+      "mouse:up": function (e) {
+        if (e.target) {
+          e.target.opacity = 1;
+          fc.renderAll();
+        }
+      },
+      "object:moved": function (e) {
+        e.target.opacity = 0.5;
+      },
+      "object:modified": function (e) {
+        e.target.opacity = 1;
+      },
+    });
+
+  }, [action, slider, isSelectable]);
 
   useEffect(() => {
     const d = ref.current!.get("backgroundImage");

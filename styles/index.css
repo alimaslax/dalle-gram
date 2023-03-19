@@ -60,3 +60,26 @@ path {
 .active path {
   fill: #3a8a3b;
 }
+
+.slider {
+  width: 100%;
+  height: 20px;
+  position: relative;
+  border-radius: 10px;
+  background-color: #ddd;
+  cursor: pointer;
+}
+
+.slider-bar {
+  height: 100%;
+  border-radius: 10px;
+  background-color: #007bff;
+  position: absolute;
+  top: 0;
+  left: 0;
+  transition: width 0.2s ease;
+}
+
+.slider-bar:hover {
+  background-color: #0056b3;
+}

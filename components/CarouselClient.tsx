@@ -73,6 +73,7 @@ export default function Carousel({
   const [action, setAction] = useState(3);
   const [isNotErasable] = useState(false);
   const [erasable, setErasable] = useState(true);
+  const [slider, setSlider] = useState(20);
   const ref = useRef<fabric.Canvas>(null);
   const i = useRef<number>(2);
 
@@ -144,7 +145,7 @@ export default function Carousel({
     switch (action) {
       case 0:
         fc.freeDrawingBrush = new fabric.EraserBrush(fc);
-        fc.freeDrawingBrush.width = 100;
+        fc.freeDrawingBrush.width = slider;
         fc.isDrawingMode = true;
         break;
       case 1:
@@ -153,7 +154,7 @@ export default function Carousel({
       case 2:
         fc.freeDrawingBrush = new fabric.SprayBrush(fc);
         fc.freeDrawingBrush.color = "rgb(204,204,204)";
-        fc.freeDrawingBrush.width = 80;
+        fc.freeDrawingBrush.width = slider;
         fc.freeDrawingBrush.density = 50;
         fc.freeDrawingBrush.dotWidth = 2;
         fc.isDrawingMode = true;
@@ -161,14 +162,14 @@ export default function Carousel({
       case 3:
         fc.freeDrawingBrush = new fabric.PencilBrush(fc);
         fc.freeDrawingBrush.color = "rgb(204,204,204)";
-        fc.freeDrawingBrush.width = 80;
+        fc.freeDrawingBrush.width = slider;
         fc.isDrawingMode = true;
         break;
       default:
         fc.isDrawingMode = false;
         break;
     }
-  }, [action]);
+  }, [action, slider]);
 
   useEffect(() => {
     const d = ref.current!.get("backgroundImage");
@@ -237,21 +238,52 @@ export default function Carousel({
     link.click();
   };
   const changeAction = (tool) => {
-    switch(tool){
-      case 'erase':
+    switch (tool) {
+      case "erase":
         setAction(0);
         break;
-      case 'move':
+      case "move":
         setAction(1);
         break;
-      case 'brush':
+      case "brush":
         setAction(2);
         break;
-      case 'spray':
+      case "spray":
         setAction(3);
         break;
     }
   };
+
+  function handleMouseDown(e) {
+    const slider = e.target;
+    const sliderWidth = slider.offsetWidth;
+    const sliderLeft = slider.getBoundingClientRect().left;
+    const position = e.clientX - sliderLeft;
+    const percentage = (position / sliderWidth) * 100;
+    setSlider(percentage);
+  }
+
+  function handleMouseDownCapture(e) {
+    e.preventDefault();
+    const slider = e.target;
+    const sliderWidth = slider.offsetWidth;
+    const sliderLeft = slider.getBoundingClientRect().left;
+
+    function handleDragMouseMove(e) {
+      const position = e.clientX - sliderLeft;
+      const percentage = (position / sliderWidth) * 100;
+      setSlider(percentage);
+    }
+
+    function handleDragMouseUp(e) {
+      document.removeEventListener("mousemove", handleDragMouseMove);
+      document.removeEventListener("mouseup", handleDragMouseUp);
+    }
+
+    document.addEventListener("mousemove", handleDragMouseMove);
+    document.addEventListener("mouseup", handleDragMouseUp);
+  }
+  
   return (
     <div className="relative z-50 flex aspect-[4/3] items-center md:aspect-[3/2]">
       {loading ? (
@@ -291,7 +323,6 @@ export default function Carousel({
             <Erase className="erase-button" />
           </div>
 
-
           <div
             className={`spray-container ${action === 3 ? "active" : ""}`}
             onClick={() => changeAction("spray")}
@@ -299,10 +330,17 @@ export default function Carousel({
             <Spray className="spray-button" />
           </div>
           <div
-            className={`brush-container ${action === 2 ? 'active' : ''}`}
+            className={`brush-container ${action === 2 ? "active" : ""}`}
             onClick={() => changeAction("brush")}
           >
             <Brush className="brush-button" />
+          </div>
+          <div
+            className="slider"
+            onMouseDownCapture={(e) => handleMouseDownCapture(e)}
+            onMouseDown={(e) => handleMouseDown(e)}
+          >
+            <div className="slider-bar" style={{ width: `${slider}%` }} />
           </div>
         </div>
       </div>

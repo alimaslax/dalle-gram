@@ -26,15 +26,11 @@ fabric.Object.prototype.erasable = true;
 const __onResize = fabric.Canvas.prototype._onResize;
 
 if (typeof window !== "undefined") {
-  // fabric.util.object.extend(fabric.Canvas.prototype, {
-  //   _onResize(this: fabric.Canvas) {
-  //     this.setDimensions(
-  //       { width: window.innerWidth, height: window.innerHeight },
-  //       false
-  //     );
-  //     __onResize.call(this);
-  //   },
-  // });
+  fabric.util.object.extend(fabric.Canvas.prototype, {
+    _onResize(this: fabric.Canvas) {
+      // blank callback, placeholder for custom resize logic
+    },
+  });
 }
 
 const JSON_DATA = [data, data2, data3];
@@ -70,7 +66,7 @@ export default function Carousel({
     closeModal();
   });
 
-  const [action, setAction] = useState(3);
+  const [action, setAction] = useState(1);
   const [isNotErasable] = useState(false);
   const [erasable, setErasable] = useState(true);
   const [slider, setSlider] = useState(20);
@@ -85,6 +81,7 @@ export default function Carousel({
     const canvas = new fabric.Canvas("c", {
       width: 512,
       height: 512,
+      // important! stability ai needs to be able to read the canvas
       backgroundColor: "rgb(255, 255, 255)",
     });
 
@@ -128,6 +125,8 @@ export default function Carousel({
           targets.map((t) => t.getEraser());
         });
         canvas.renderAll();
+
+        // save original image
         setBase64(
           canvas.toDataURL({
             format: "png",
@@ -220,23 +219,22 @@ export default function Carousel({
     });
     showPicture(base64, prompt);
   };
+
   const handleDownload = (event) => {
     event.preventDefault(); // this will prevent the default action of navigating the page
     const ext = "png";
     let canvas = ref.current!;
-    // Bring the bottom layer to the front
-    const bottomObject = canvas.getObjects()[0];
-    canvas.remove(bottomObject);
-
     const base64 = canvas.toDataURL({
       format: ext,
       enableRetinaScaling: false,
     });
+    
     const link = document.createElement("a");
     link.href = base64;
     link.download = `eraser_example.${ext}`;
     link.click();
   };
+
   const changeAction = (tool) => {
     switch (tool) {
       case "erase":
@@ -283,7 +281,7 @@ export default function Carousel({
     document.addEventListener("mousemove", handleDragMouseMove);
     document.addEventListener("mouseup", handleDragMouseUp);
   }
-  
+
   return (
     <div className="relative z-50 flex aspect-[4/3] items-center md:aspect-[3/2]">
       {loading ? (
@@ -313,7 +311,8 @@ export default function Carousel({
           <div className="download-container" onClick={handleDownload}>
             <Download className="download-button" />
           </div>
-          <div className="move-container" onClick={() => changeAction("move")}>
+          <div className={`move-container ${action === 1 ? "active" : ""}`}
+           onClick={() => changeAction("move")}>
             <Move className="move-button" />
           </div>
           <div

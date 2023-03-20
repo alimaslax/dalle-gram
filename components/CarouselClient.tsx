@@ -108,6 +108,12 @@ export default function Carousel({
       //console.log(e.target.getEraser());
     });
 
+    canvas.on("before:path:created", async (e) => {
+      if(e.path){
+        setIsSelectable(false) 
+      }
+    });
+
     console.log(currentPhoto.public_id);
     fabric.Image.fromURL(
       `/proxy?url=${encodeURIComponent(currentPhoto.public_id)}`,
@@ -133,7 +139,25 @@ export default function Carousel({
           erasable: erasable,
         });
         canvas.add(img);
-
+        canvas.on({
+          "mouse:down": function (e) {
+            if (e.target) {
+              e.target.opacity = 0.9;
+              canvas.renderAll();
+            }
+          },
+          "mouse:up": function (e) {
+            if (e.target?.isDrawingMode) {
+              console.log("HEREEEE");
+            }
+          },
+          "object:moved": function (e) {
+            e.target.opacity = 0.5;
+          },
+          "object:modified": function (e) {
+            e.target.opacity = 1;
+          },
+        });
         // custom canvas fire event
         // useEffect Only Calls them once (With the old canvas ref)
         canvas.on("erasing:end", ({ targets, drawables }) => {
@@ -181,40 +205,16 @@ export default function Carousel({
         fc.isDrawingMode = false;
         break;
     }
-    
+  }, [action, slider]);
 
-    // Canvas Action Listeners Must Change with ref.current
-    fc.on({
-      "mouse:down": function (e) {
-        if (e.target?.canvas) {
-          e.target.opacity = 0.9;
-          if (action != 1 && isSelectable) {
-            console.log("HERE");
-            const imgObj = fc.getObjects()[0];
-            imgObj.set({
-              selectable: false,
-            })
-            setIsSelectable(false);
-            setBase64(getBase64Url(e.target.canvas));
-          }
-          // good place to capture before and after of drawable edit of image
-        }
-      },
-      "mouse:up": function (e) {
-        if (e.target) {
-          e.target.opacity = 1;
-          fc.renderAll();
-        }
-      },
-      "object:moved": function (e) {
-        e.target.opacity = 0.5;
-      },
-      "object:modified": function (e) {
-        e.target.opacity = 1;
-      },
-    });
-
-  }, [action, slider, isSelectable]);
+  //useEffect for isSelectable
+  useEffect(() => {
+    const d = ref.current!;
+    console.log(d+"d")
+    d?.set({ selectable: isSelectable });
+    d?.renderAll();
+    setBase64(getBase64Url(d));
+  }, [isSelectable]);
 
   useEffect(() => {
     const d = ref.current!.get("backgroundImage");

@@ -92,7 +92,7 @@ export default function Carousel({
   }
 
   useEffect(() => {
-    console.log("state Changed", canvasUrl);
+    //console.log("state Changed", canvasUrl);
   }, [base64, canvasUrl, loading, isSelectable]);
 
   useEffect(() => {
@@ -108,13 +108,29 @@ export default function Carousel({
       //console.log(e.target.getEraser());
     });
 
+    canvas.on("erasing:start", async (e) => {
+      //console.log("erasing:start");
+      setIsSelectable(false);
+    });
+
     canvas.on("before:path:created", async (e) => {
       if(e.path){
-        setIsSelectable(false) 
       }
     });
 
-    console.log(currentPhoto.public_id);
+    canvas.on("object:added", async (e) => {
+      const object = e.target;
+      //console.log("Object added: ", object);
+      // Perform actions on the added object here
+      if (!(object.type === "image")) {
+        //console.log("Object added: ", object);
+        // has no state watch
+        setIsSelectable(false);
+      }
+    });
+
+    
+    //console.log(currentPhoto.public_id);
     fabric.Image.fromURL(
       `/proxy?url=${encodeURIComponent(currentPhoto.public_id)}`,
       function (img) {
@@ -148,7 +164,7 @@ export default function Carousel({
           },
           "mouse:up": function (e) {
             if (e.target?.isDrawingMode) {
-              console.log("HEREEEE");
+             //console.log("HEREEEE");
             }
           },
           "object:moved": function (e) {
@@ -157,16 +173,18 @@ export default function Carousel({
           "object:modified": function (e) {
             e.target.opacity = 1;
           },
+          "canvas:locked": function (e) {
+            console.log("canvas:locked");
+            img.set({
+              erasable1: erasable,
+              selectable: false,
+            });
+          },
         });
         // custom canvas fire event
         // useEffect Only Calls them once (With the old canvas ref)
         canvas.on("erasing:end", ({ targets, drawables }) => {
-          console.log(
-            "objects: Placeholders for undo/redo",
-            targets.map((t) => t.type),
-            "drawables:",
-            Object.keys(drawables)
-          );
+          //setIsSelectable(false);
           targets.map((t) => t.getEraser());
         });
         canvas.renderAll();
@@ -207,15 +225,6 @@ export default function Carousel({
     }
   }, [action, slider]);
 
-  //useEffect for isSelectable
-  useEffect(() => {
-    const d = ref.current!;
-    console.log(d+"d")
-    d?.set({ selectable: isSelectable });
-    d?.renderAll();
-    setBase64(getBase64Url(d));
-  }, [isSelectable]);
-
   useEffect(() => {
     const d = ref.current!.get("backgroundImage");
     d?.set({ erasable: isNotErasable });
@@ -226,13 +235,34 @@ export default function Carousel({
     d?.set({ erasable: erasable });
   }, [erasable]);
 
+  // useEffect for erasable for first image
+  useEffect(() => {
+    //console.log(" ******* img");
+    if(base64 == null){
+    const d = ref.current!
+    const canavsObjs = d.getObjects().slice(1);
+    const img = d.getObjects()[0];
+    if(img){
+      console.log(img+" ******* final img");
+      d.remove(...d.getObjects().slice(1));
+      setBase64(getBase64Url(d));
+      d.remove(img);
+      img?.set({ isSelectable: false });
+      d.add(img);
+      d.add(...canavsObjs)
+      d.renderAll();
+      d.fire("canvas:locked");
+    }
+    }
+  }, [(!isSelectable)]);
+
   function showPicture(edit64, prompt) {
     setLoading(true);
     // Create a FormData object
     const form = new FormData();
     form.append("image", base64);
     form.append("mask", edit64);
-    console.log(prompt + "prompt");
+    //console.log(prompt + "prompt");
     form.append("prompt", prompt);
 
     // Send a POST request to the server

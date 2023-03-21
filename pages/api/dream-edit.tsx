@@ -3,7 +3,7 @@ import { GenerationServiceClient } from "../../generation/generation_pb_service"
 import { grpc as GRPCWeb } from "@improbable-eng/grpc-web";
 import { NodeHttpTransport } from "@improbable-eng/grpc-web-node-http-transport";
 import sharp from "sharp";
-import fs from "fs";
+
 import {
   buildGenerationRequest,
   executeGenerationRequest,
@@ -27,6 +27,7 @@ export const config = {
     },
   },
 };
+
 
 export default async function handler(req, res) {
   if (req.method === "POST") {

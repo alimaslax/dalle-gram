@@ -159,7 +159,6 @@ export default function Carousel({
           "mouse:down": function (e) {
             if (e.target) {
               e.target.opacity = 0.9;
-              canvas.renderAll();
             }
           },
           "mouse:up": function (e) {

@@ -132,7 +132,7 @@ export default function Carousel({
     
     //console.log(currentPhoto.public_id);
     fabric.Image.fromURL(
-      `/proxy?url=${encodeURIComponent(currentPhoto.public_id)}`,
+      `/api/proxy?url=${encodeURIComponent(currentPhoto.public_id)}`,
       function (img) {
         img.set({
           erasable1: erasable,

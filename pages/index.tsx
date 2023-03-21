@@ -141,7 +141,7 @@ export async function getStaticProps() {
   const data = fs.readFileSync('image.txt', 'utf8')
   const urls = data.trim().split('\n')
   let reducedResults: ImageProps[] = []
-  for (let i = 0; i < 12; i++) {
+  for (let i = 0; i < urls.length; i++) {
     reducedResults.push({
       id: i,
       height: "800",

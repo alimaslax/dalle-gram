@@ -6,6 +6,7 @@ import getResults from '../../utils/cachedImages'
 import cloudinary from '../../utils/cloudinary'
 import getBase64ImageUrl from '../../utils/generateBlurPlaceholder'
 import type { ImageProps } from '../../utils/types'
+import fs from 'fs'
 
 const Home: NextPage = ({ currentPhoto }: { currentPhoto: ImageProps }) => {
   const router = useRouter()
@@ -67,7 +68,9 @@ export const getStaticProps: GetStaticProps = async (context) => {
 
 export async function getStaticPaths() {
   let fullPaths = []
-  for (let i = 0; i < 14; i++) {
+  const data = fs.readFileSync('image.txt', 'utf8')
+  const urls = data.trim().split('\n')
+  for (let i = 0; i < urls.length; i++) {
     fullPaths.push({ params: { photoId: i.toString() } })
   }
 

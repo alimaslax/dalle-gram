@@ -158,7 +158,8 @@ export default function Carousel({
         canvas.on({
           "mouse:down": function (e) {
             if (e.target) {
-              e.target.opacity = 0.9;
+              //e.target.opacity = 0.7;
+              //canvas.renderAll();
             }
           },
           "mouse:up": function (e) {
@@ -167,10 +168,10 @@ export default function Carousel({
             }
           },
           "object:moved": function (e) {
-            e.target.opacity = 0.5;
+            //e.target.opacity = 0.5;
           },
           "object:modified": function (e) {
-            e.target.opacity = 1;
+           // e.target.opacity = 1;
           },
           "canvas:locked": function (e) {
             console.log("canvas:locked");
@@ -215,6 +216,7 @@ export default function Carousel({
       case 3:
         fc.freeDrawingBrush = new fabric.PencilBrush(fc);
         fc.freeDrawingBrush.color = "rgb(204,204,204)";
+        fc.freeDrawingBrush.shadowBlur = 0.5;
         fc.freeDrawingBrush.width = slider;
         fc.isDrawingMode = true;
         break;

@@ -41,6 +41,7 @@ export default async function handler(req, res) {
       const imageBase64Data = req.body.image.split(',')[1];
       const maskBase64Data = req.body.mask.split(',')[1];
       const prompt = req.body.prompt;
+      const wrappedPrompt = `${prompt}, match STYLE to the image. Reference image: original image. gray areas should be completely replaced.`;
       let imageBuffer = Buffer.from(imageBase64Data, "base64");
       let editBuffer = Buffer.from(maskBase64Data, "base64");
 
@@ -80,14 +81,14 @@ export default async function handler(req, res) {
       .png()
       .toBuffer();
 
-      fs.writeFileSync(
-        `image-${`test`}.png`,
-        Buffer.from(imageBuffer)
-      );
-      fs.writeFileSync(
-        `mask-${`test`}.png`,
-        Buffer.from(editBuffer)
-      );
+      // fs.writeFileSync(
+      //   `image-${`test`}.png`,
+      //   Buffer.from(imageBuffer)
+      // );
+      // fs.writeFileSync(
+      //   `mask-${`test`}.png`,
+      //   Buffer.from(editBuffer)
+      // );
 
       const imageStrength = 0.35;
       const request = buildGenerationRequest("stable-diffusion-512-v2-1", {
@@ -96,7 +97,7 @@ export default async function handler(req, res) {
         maskImage: editBuffer,
         prompts: [
           {
-            text: prompt,
+            text: wrappedPrompt,
           },
         ],
         samples: 1,
@@ -112,11 +113,10 @@ export default async function handler(req, res) {
             try {
               const imgBuffer = Buffer.from(artifact.getBinary_asU8());
 
-
-              fs.writeFileSync(
-                `mask-${artifact.getSeed()}.png`,
-                imgBuffer
-              );
+              // fs.writeFileSync(
+              //   `mask-${artifact.getSeed()}.png`,
+              //   imgBuffer
+              // );
               const completion = {
                 data: [
                   {

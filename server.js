@@ -27,7 +27,11 @@ app.prepare().then(() => {
   server.use(cors());
 
   // Use the multer middleware to handle the request body
-  server.use(upload.fields([]));
+  server.use(upload.fields([
+    { name: 'image', maxCount: 1 },
+    { name: 'mask', maxCount: 1 },
+    { name: 'prompt', maxCount: 1 },
+  ]));
 
   // Add middleware to log incoming requests
   server.use((req, res, next) => {

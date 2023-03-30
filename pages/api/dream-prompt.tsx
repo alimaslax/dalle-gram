@@ -15,7 +15,7 @@ GRPCWeb.setDefaultTransport(NodeHttpTransport());
 
 // Authenticate using your API key, don't commit your key to a public repository!
 const metadata = new GRPCWeb.Metadata();
-metadata.set("Authorization", "Bearer " + process.env.API_KEY);
+metadata.set("Authorization", "Bearer " + process.env.STABILITY_API_KEY);
 
 // Create a generation client to use with all future requests
 const client = new GenerationServiceClient("https://grpc.stability.ai", {});

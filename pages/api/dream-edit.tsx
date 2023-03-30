@@ -3,6 +3,7 @@ import { GenerationServiceClient } from "../../generation/generation_pb_service"
 import { grpc as GRPCWeb } from "@improbable-eng/grpc-web";
 import { NodeHttpTransport } from "@improbable-eng/grpc-web-node-http-transport";
 import sharp from "sharp";
+import fs from "fs";
 
 import {
   buildGenerationRequest,
@@ -15,7 +16,7 @@ GRPCWeb.setDefaultTransport(NodeHttpTransport());
 
 // Authenticate using your API key, don't commit your key to a public repository!
 const metadata = new GRPCWeb.Metadata();
-metadata.set("Authorization", "Bearer " + process.env.API_KEY);
+metadata.set("Authorization", "Bearer " + process.env.STABILITY_API_KEY);
 
 // Create a generation client to use with all future requests
 const client = new GenerationServiceClient("https://grpc.stability.ai", {});
@@ -42,7 +43,7 @@ export default async function handler(req, res) {
       const imageBase64Data = req.body.image.split(',')[1];
       const maskBase64Data = req.body.mask.split(',')[1];
       const prompt = req.body.prompt;
-      const wrappedPrompt = `${prompt}, match STYLE to the image. Reference image: original image. gray areas should be completely replaced.`;
+      const wrappedPrompt = `${prompt}, good composition. Asthetic, HQ.`;
       let imageBuffer = Buffer.from(imageBase64Data, "base64");
       let editBuffer = Buffer.from(maskBase64Data, "base64");
 

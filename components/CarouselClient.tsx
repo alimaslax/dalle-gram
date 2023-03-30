@@ -207,7 +207,7 @@ export default function Carousel({
         break;
       case 2:
         fc.freeDrawingBrush = new fabric.SprayBrush(fc);
-        fc.freeDrawingBrush.color = "rgb(204,204,204)";
+        fc.freeDrawingBrush.color = "rgb(204,204,204, 1.0)";
         fc.freeDrawingBrush.width = slider;
         fc.freeDrawingBrush.density = 50;
         fc.freeDrawingBrush.dotWidth = 2;
@@ -215,8 +215,9 @@ export default function Carousel({
         break;
       case 3:
         fc.freeDrawingBrush = new fabric.PencilBrush(fc);
-        fc.freeDrawingBrush.color = "rgb(204,204,204)";
-        fc.freeDrawingBrush.shadowBlur = 0.5;
+        fc.freeDrawingBrush.color = "rgb(204,204,204,1.0)";
+        //fc.freeDrawingBrush.shadowBlur = 0.5;
+        fc.freeDrawingBrush.opacity = 1.0;
         fc.freeDrawingBrush.width = slider;
         fc.isDrawingMode = true;
         break;
